@@ -44,7 +44,7 @@ Create a `.env` file and configure necessary settings.
 
 ### 5. Run the Application
 ```bash
-flask run
+python app.py
 ```
 
 The API will be available at `http://127.0.0.1:5000/`
