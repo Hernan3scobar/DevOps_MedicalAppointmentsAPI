@@ -63,3 +63,10 @@ yarn-error.log
 dist/
 build/
 *.egg-info/
+
+
+# Terraform files
+terraform.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
