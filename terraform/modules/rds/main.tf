@@ -32,7 +32,7 @@ resource "aws_db_instance" "default" {
   engine                 = "mysql"
   engine_version         = "8.0"
   instance_class         = "db.t3.micro"
-  username               = "admin_user"
+  username               = "admin_user" 
   password               = data.aws_ssm_parameter.db_password.value
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
