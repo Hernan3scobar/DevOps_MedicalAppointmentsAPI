@@ -1,6 +1,6 @@
 resource "aws_vpc" "main" {
   cidr_block           = var.cidr_block
-  enable_dns_support   = true 
+  enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = {
@@ -19,13 +19,23 @@ resource "aws_subnet" "public" {
   }
 }
 
-resource "aws_subnet" "private" {
+resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.cidr_block, 8, 1)
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "private-subnet-a"
+  }
+}
+
+resource "aws_subnet" "private_b" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.cidr_block, 8, 2)
   availability_zone = "us-east-1b"
 
   tags = {
-    Name = "private-subnet"
+    Name = "private-subnet-b"
   }
 }
 
