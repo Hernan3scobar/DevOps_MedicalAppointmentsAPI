@@ -3,7 +3,7 @@
 This Terraform configuration deploys a basic infrastructure in AWS that includes:
 
 - A Virtual Private Cloud (VPC)
-- One EC2 instance (Amazon Linux 2)
+- One EC2 instance (​Ubuntu 22.04 LTS)
 - One RDS MySQL database
 
 ## Structure
