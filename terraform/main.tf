@@ -10,9 +10,8 @@ module "ec2" {
 }
 
 module "rds" {
-  source      = "./modules/rds"
-  vpc_id      = module.vpc.vpc_id
-  subnet_ids  = module.vpc.private_subnet_ids
-  db_password = var.db_password
-  ec2_sg_id   = module.ec2.security_group_id
+  source     = "./modules/rds"
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnet_ids
+  ec2_sg_id  = module.ec2.security_group_id
 }
