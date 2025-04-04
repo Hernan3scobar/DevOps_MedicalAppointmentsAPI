@@ -1,30 +1,24 @@
 from datetime import datetime, time
 
-def get_message(key, lang='es'):
-    # Dictionary for messages in both Spanish and English
+def get_message(key, lang):
     messages = {
-        'invalid_date_format': {
-            'es': 'Formato de fecha incorrecto. Use YYYY-MM-DD.',
-            'en': 'Invalid date format. Use YYYY-MM-DD.'
+        'es': {
+            'invalid_date_format': 'Formato de fecha inválido. Debe ser YYYY-MM-DD.',
+            'schedule_not_found': 'Horario no encontrado.',
+            'deleted_successfully': 'El horario ha sido eliminado con éxito.',
+            'invalid_hour_format': 'Formato de hora inválido. Debe ser HH:MM (entre 09:00 y 19:00).',
+            'invalid_hour_range': 'La hora debe estar entre 09:00 y 19:00.',
         },
-        'invalid_hour_format': {
-            'es': 'Formato de hora incorrecto. Use HH:MM.',
-            'en': 'Invalid time format. Use HH:MM.'
-        },
-        'hour_out_of_range': {
-            'es': 'La hora debe estar entre 09:00 y 19:00.',
-            'en': 'The time must be between 09:00 and 19:00.'
-        },
-        'schedule_not_found': {
-            'es': 'No se encontró la hora programada.',
-            'en': 'Schedule not found.'
-        },
-        'deleted_successfully': {
-            'es': 'Hora eliminada correctamente.',
-            'en': 'Schedule deleted successfully.'
+        'en': {
+            'invalid_date_format': 'Invalid date format. It should be YYYY-MM-DD.',
+            'schedule_not_found': 'Schedule not found.',
+            'deleted_successfully': 'The schedule has been successfully deleted.',
+            'invalid_hour_format': 'Invalid hour format. It should be HH:MM (between 09:00 and 19:00).',
+            'invalid_hour_range': 'The hour must be between 09:00 and 19:00.',
         }
     }
-    return messages.get(key, {}).get(lang, '')
+    
+    return messages.get(lang, messages['es']).get(key, 'Unknown error')
 
 def validate_hour(hour_str, lang='es'):
     try:

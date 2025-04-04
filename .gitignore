@@ -64,6 +64,8 @@ dist/
 build/
 *.egg-info/
 
+#Ansible hardcoded
+ansible_env.yml
 
 # Terraform files
 terraform.tfvars

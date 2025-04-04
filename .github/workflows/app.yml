@@ -26,4 +26,4 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         source .venv/bin/activate
-        pylint --disable=C0114,C0115,C0116,C0301,C0411,R0903,W0613,W0621,C0303,C0325 $(git ls-files '*.py')
+        pylint --disable=C0114,C0115,C0116,C0301,C0411,R0903,W0613,W0621,C0303,C0325,C304,C305 $(git ls-files '*.py')

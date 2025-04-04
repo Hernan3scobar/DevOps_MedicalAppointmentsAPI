@@ -110,3 +110,19 @@ def cancel_reservation(schedule_id):
     schedule.reserved_note = None
     db.session.commit()
     return jsonify(schedule.to_dict()), 200
+
+def format_error_response(error_key, lang):
+    """
+    Returns a standardized JSON response for errors.
+    """
+    return jsonify({
+        "error": {
+            "code": 400,
+            "message": get_message(error_key, lang),
+            "expected_format": {
+                "date": "YYYY-MM-DD",
+                "hour": "HH:MM (between 09:00 and 19:00)",
+                "shared": "Boolean (true/false)"
+            }
+        }
+    }), 400
