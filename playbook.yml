@@ -12,8 +12,15 @@
           - python3-pip
           - git
           - mysql-client
+          - docker #Container
         state: present
         update_cache: yes
+
+        #Add docker installation here
+
+    - name: Docker install
+      command: docker build
+        # Finish the rest of the code
 
     - name: Clone the repository
       git:
