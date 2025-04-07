@@ -1,41 +1,53 @@
-// Jenkinsfile.infra
-// Pipeline for Terraform infrastructure provisioning (secure, using SSM and no secrets in code)
-
 pipeline {
-    agent any
-
-    environment {
-        TF_IN_AUTOMATION = 'true'
-        TF_INPUT = 'false'
-    }
+    agent none  // No hay agente global
 
     stages {
         stage('Checkout') {
+            agent any
             steps {
                 checkout scm
             }
         }
 
-        stage('Terraform Init') {
+        stage('Terraform Init & Plan') {
+            agent {
+                docker {
+                    image 'hashicorp/terraform:1.6.6'
+                }
+            }
             steps {
                 dir('terraform') {
                     sh 'terraform init'
-                }
-            }
-        }
-
-        stage('Terraform Plan') {
-            steps {
-                dir('terraform') {
                     sh 'terraform plan -out=tfplan'
                 }
             }
         }
 
         stage('Terraform Apply') {
+            when {
+                branch 'test-infra'
+            }
+            agent {
+                docker {
+                    image 'hashicorp/terraform:1.6.6'
+                }
+            }
             steps {
                 dir('terraform') {
                     sh 'terraform apply -auto-approve tfplan'
+                }
+            }
+        }
+
+        stage('Run Ansible') {
+            agent {
+                docker {
+                    image 'ansible/ansible:latest'  // O una tuya con lo necesario
+                }
+            }
+            steps {
+                dir('ansible') {
+                    sh 'ansible-playbook site.yml'
                 }
             }
         }
