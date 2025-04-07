@@ -63,6 +63,8 @@ pipeline {
     }
 }
 
+// Separar jenkinsfile
+
 // Terraform functions
 def runTerraformInit() {
     echo 'Initializing Terraform...'

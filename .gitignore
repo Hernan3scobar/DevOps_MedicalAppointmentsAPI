@@ -72,3 +72,6 @@ terraform.tfvars
 *.tfstate
 *.tfstate.backup
 .terraform/
+my_ssh_key
+.gitignore
+my_ssh_key.pub
