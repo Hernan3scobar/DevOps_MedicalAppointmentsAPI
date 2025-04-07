@@ -27,17 +27,6 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-
-variable "ssh_public_key" {
-  description = "Public SSH key for EC2 instances"
-  type        = string
-}
-
-variable "ssh_private_key" {
-  description = "Private SSH key for EC2 instances"
-  type        = string
-}
-
 resource "aws_key_pair" "ssh_key" {
   key_name   = "my_key_pair"
   public_key = var.ssh_public_key
