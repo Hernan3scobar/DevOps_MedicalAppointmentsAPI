@@ -39,19 +39,7 @@ pipeline {
             }
         }
 
-        stage('Run Ansible') {
-            agent {
-                docker {
-                    image 'ansible/ansible:latest'  // O una tuya con lo necesario
-                }
-            }
-            steps {
-                dir('ansible') {
-                    sh 'ansible-playbook site.yml'
-                }
-            }
-        }
-    }
+
 
     post {
         always {
@@ -60,4 +48,3 @@ pipeline {
     }
 }
 
-#algo para editar
