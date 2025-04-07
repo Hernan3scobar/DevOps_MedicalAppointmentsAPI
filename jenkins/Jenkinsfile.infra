@@ -1,5 +1,5 @@
 pipeline {
-    agent none  // No hay agente global
+    agent none
 
     stages {
         stage('Checkout') {
