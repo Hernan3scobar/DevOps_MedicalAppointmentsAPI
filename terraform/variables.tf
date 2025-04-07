@@ -22,4 +22,5 @@ variable "ssh_public_key" {
   description = "Public SSH key for EC2 instances"
   type        = string
   default     = "" # Puede estar vacío por defecto
+  sensitive = true
 }
