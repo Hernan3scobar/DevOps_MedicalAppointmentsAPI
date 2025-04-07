@@ -17,12 +17,12 @@ module "rds" {
 }
 
 module "budget" {
-  source              = "./modules/budget"
-  budget_name         = var.budget_name
-  limit_amount        = var.limit_amount
-  time_unit           = var.time_unit
-  services            = var.services
-  time_period_start   = var.time_period_start
-  time_period_end     = var.time_period_end
-  notification_email  = var.notification_email
+  source             = "./modules/budget"
+  budget_name        = var.budget_name
+  limit_amount       = var.limit_amount
+  time_unit          = var.time_unit
+  services           = var.services
+  time_period_start  = var.time_period_start
+  time_period_end    = var.time_period_end
+  notification_email = var.notification_email
 }
