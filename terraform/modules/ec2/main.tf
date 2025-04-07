@@ -29,10 +29,9 @@ resource "aws_security_group" "ec2_sg" {
 
 
 resource "aws_key_pair" "ssh_key" {
-  key_name   = "my_key_pair"
-  public_key = file("~/.ssh/my_shh_key.pub")
+  key_name   = "my_key_pair_${var.environment}" # Nombre dinámico
+  public_key = var.ssh_public_key # Variable inyectada
 }
-
 
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.ubuntu.id
