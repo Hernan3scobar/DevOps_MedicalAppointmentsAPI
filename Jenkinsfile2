@@ -1,0 +1,93 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                echo "🔄 Cloning repository from ${env.GIT_REPO_URL} (branch: ${env.GIT_BRANCH})"
+                sh 'rm -rf project && git clone -b "$GIT_BRANCH" "$GIT_REPO_URL" project'
+            }
+        }
+
+        stage('Preparar Configuración') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'MY_SSH_KEY_PUBLIC', variable: 'MY_SSH_KEY_PUBLIC')
+                ]) {
+                    dir('project/terraform') {
+                        // Copiar template y agregar clave SSH
+                        sh '''
+                            cp terraform.tfvars.example terraform.tfvars
+                            echo "\nssh_public_key = \"${MY_SSH_KEY_PUBLIC}\"" >> terraform.tfvars
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                withCredentials([ 
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir('project/terraform') {
+                        sh 'terraform init'
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([
+                    aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
+                        credentialsId: 'aws-credentials', 
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    dir('project/terraform') {
+                        script {
+                            def planStatus = sh(
+                                script: 'terraform plan -detailed-exitcode -var-file=terraform.tfvars',
+                                returnStatus: true
+                            )
+                            
+                            if (planStatus == 0) {
+                                echo "✅ No infrastructure changes detected."
+                            } else if (planStatus == 2) {
+                                echo "🔧 Infrastructure changes detected. Preparing to apply..."
+                                env.TF_CHANGES = "true"
+                            } else {
+                                error "❌ terraform plan failed."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            when {
+                expression { return env.TF_CHANGES == 'true' }
+            }
+            steps {
+                withCredentials([ 
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir('project/terraform') {
+                        echo "🚀 Applying Terraform changes..."
+                        sh 'terraform apply -auto-approve -var-file=terraform.tfvars'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Limpiar archivo generado (opcional)
+            dir('project/terraform') {
+                sh 'rm -f terraform.tfvars 2>/dev/null || true'
+            }
+        }
+    }
+}
