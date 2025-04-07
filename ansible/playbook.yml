@@ -1,55 +1,65 @@
-- name: Set up and deploy the application
+- name: Deploy Flask App with Docker
   hosts: all
   become: yes
-  vars_files:
-    - ansible_env.yml
+
+  vars:
+    app_repo: "https://github.com/CodeSSRockMan/DevOps_MedicalAppointmentsAPI.git"
+    app_dir: "/opt/app"
+    docker_image_name: "medical_flask_app"
+    docker_container_name: "medical_container"
+    env_file_path: "/opt/app/.env"
+    db_password_param: "/rds/mysql/password"  # SSM Parameter Store name
+
   tasks:
-    - name: Install system dependencies
+    - name: Install required system packages
       apt:
-        name:
-          - python3
-          - python3-venv
-          - python3-pip
-          - git
-          - mysql-client
+        name: [ "docker.io", "python3-pip", "git", "awscli" ]
         state: present
         update_cache: yes
 
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: true
+
     - name: Clone the repository
       git:
-        repo: "https://github.com/CodeSSRockMan/DevOps_MedicalAppointmentsAPI.git"
-        dest: "/opt/app"
+        repo: "{{ app_repo }}"
+        dest: "{{ app_dir }}"
         version: master
+        force: yes
 
-    - name: Create a virtual environment
-      command: python3 -m venv /opt/app/.venv
-      args:
-        creates: /opt/app/.venv
+    - name: Fetch DB password from AWS SSM Parameter Store
+      command: >
+        aws ssm get-parameter --name "{{ db_password_param }}" --with-decryption --query 'Parameter.Value' --output text
+      register: db_password_result
 
-    - name: Install Python dependencies
-      shell: |
-        source /opt/app/.venv/bin/activate
-        pip install --upgrade pip
-        pip install -r /opt/app/requirements.txt
-      args:
-        executable: /bin/bash
+    - name: Create .env file for Docker container
+      copy:
+        dest: "{{ env_file_path }}"
+        content: |
+          DB_PASSWORD={{ db_password_result.stdout }}
+      no_log: true
 
-    - name: Upgrade Flask and Werkzeug
-      shell: |
-        source /opt/app/.venv/bin/activate
-        pip install --upgrade flask werkzeug
-      args:
-        executable: /bin/bash
+    - name: Stop and remove previous Docker container if exists
+      docker_container:
+        name: "{{ docker_container_name }}"
+        state: absent
+        force_kill: true
 
-    - name: Run SQL script to set up database schema
-      shell: >
-        mysql -h "{{ ansible_env.rds_host }}" -u "{{ ansible_env.rds_user }}" -p"{{ ansible_env.rds_password }}" "{{ ansible_env.db_name }}" < /opt/app/db_setup.sql
-      args:
-        executable: /bin/bash
+    - name: Build Docker image from source
+      docker_image:
+        name: "{{ docker_image_name }}"
+        path: "{{ app_dir }}"
+        build: true
 
-    - name: Run the application
-      shell: |
-        source /opt/app/.venv/bin/activate
-        python /opt/app/app.py
-      args:
-        executable: /bin/bash
+    - name: Run the Docker container
+      docker_container:
+        name: "{{ docker_container_name }}"
+        image: "{{ docker_image_name }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "80:5000"
+        env_file: "{{ env_file_path }}"

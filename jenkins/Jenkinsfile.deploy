@@ -1,0 +1,70 @@
+pipeline {
+  agent any
+
+  environment {
+    APP_DIR = '/opt/app'
+    VENV_DIR = '/opt/app/.venv'
+    DB_PASSWORD_PARAM = '/rds/mysql/password'  // Parámetro en SSM
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        script {
+          checkout scm
+        }
+      }
+    }
+
+    stage('Run Ansible Playbook') {
+      steps {
+        script {
+          echo 'Executing Ansible deployment...'
+          sh 'ansible-playbook -i ansible/inventory/hosts ansible/playbook.yml'
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        dir('docker') {
+          script {
+            sh 'docker build -t medical-app:latest .'
+          }
+        }
+      }
+    }
+
+    stage('Run Docker Container') {
+      steps {
+        script {
+          // Detener y eliminar contenedor anterior si existe
+          sh '''
+            docker stop medical-app || true
+            docker rm medical-app || true
+            docker run -d --name medical-app \
+              -p 80:5000 \
+              -e DB_PASSWORD=$(aws ssm get-parameter --name ${DB_PASSWORD_PARAM} --with-decryption --query Parameter.Value --output text) \
+              medical-app:latest
+          '''
+        }
+      }
+    }
+
+    stage('Run Unit Tests') {
+      steps {
+        dir('test') {
+          script {
+            sh 'pytest .'
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}

@@ -6,3 +6,4 @@ data "aws_ssm_parameter" "db_password" {
 data "aws_ssm_parameter" "db_user" {
   name = "/rds/mysql/username"
 }
+
