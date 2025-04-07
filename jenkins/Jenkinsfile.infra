@@ -46,3 +46,5 @@ pipeline {
         }
     }
 }
+// This Jenkinsfile is used to manage the infrastructure for the Medical Appointments API project using Terraform.
+// It includes stages for checking out the code, initializing Terraform, planning the infrastructure changes, and applying them.
