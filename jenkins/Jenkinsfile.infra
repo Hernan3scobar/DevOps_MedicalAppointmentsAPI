@@ -11,7 +11,7 @@ pipeline {
 
         stage('Terraform Init & Plan') {
             agent {
-                docker {
+                dockerContainer {
                     image 'hashicorp/terraform:1.6.6'
                 }
             }
@@ -28,7 +28,7 @@ pipeline {
                 branch 'test-infra'
             }
             agent {
-                docker {
+                dockerContainer {
                     image 'hashicorp/terraform:1.6.6'
                 }
             }
@@ -38,8 +38,7 @@ pipeline {
                 }
             }
         }
-
-
+    }
 
     post {
         always {
@@ -47,5 +46,3 @@ pipeline {
         }
     }
 }
-}
-
