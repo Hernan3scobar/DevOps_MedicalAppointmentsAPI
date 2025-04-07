@@ -1,5 +1,6 @@
-# Jenkinsfile.infra
-# Pipeline for Terraform infrastructure provisioning (secure, using SSM and no secrets in code)
+// Jenkinsfile.infra
+// Pipeline for Terraform infrastructure provisioning (secure, using SSM and no secrets in code)
+
 pipeline {
     agent any
 
