@@ -50,7 +50,7 @@
 
     - name: Run SQL script to set up database schema
       shell: >
-        mysql -h "{{ ansible_env.rds_host }}" -u "{{ ansible_env.rds_user }}" -p"{{ ansible_env.rds_password }}" "{{ ansible_env.db_name }}" < /opt/app/db_setup.sql
+        mysql -h "{{ ansible_env.rds_host }}" -u "{{ ansible_env.rds_user }}" -p"{{ ansible_env.rds_password }}" "{{ ansible_env.db_name }}" < /opt/app/create_db.sql
       args:
         executable: /bin/bash
 
