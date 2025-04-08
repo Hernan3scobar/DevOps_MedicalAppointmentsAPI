@@ -10,9 +10,7 @@ pipeline {
         }
 
         stage('Terraform Init') {
-            when {
-                branch 'test-infra'
-            }
+           
             steps {
                 dir('terraform') {
                     sh 'terraform init'
