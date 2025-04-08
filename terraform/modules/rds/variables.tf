@@ -12,3 +12,6 @@ variable "db_instance_class" { #added this variable to get the instance class of
   type        = string
   default     = "db.t3.micro"
 }
+variable "db_password" {
+  type = string
+}
