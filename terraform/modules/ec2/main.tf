@@ -57,6 +57,12 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
+  root_block_device {
+    volume_size = 30        
+    volume_type = "gp2"     
+    delete_on_termination = true
+  }
+
   tags = {
     Name = "web-instance"
   }

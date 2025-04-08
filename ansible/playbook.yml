@@ -8,7 +8,7 @@
     docker_image_name: "medical_flask_app"
     docker_container_name: "medical_container"
     env_file_path: "/opt/app/.env"
-    db_password_param: "/rds/mysql/password"  # SSM Parameter Store name
+    db_url_param: "/rds/mysql/db_url"
 
   tasks:
     - name: Install required system packages
@@ -30,31 +30,32 @@
         version: master
         force: yes
 
-    - name: Fetch DB password from AWS SSM Parameter Store
+    - name: Fetch DATABASE_URL from AWS SSM
       command: >
-        aws ssm get-parameter --name "{{ db_password_param }}" --with-decryption --query 'Parameter.Value' --output text
-      register: db_password_result
+        aws ssm get-parameter --name "{{ db_url_param }}" --with-decryption --query 'Parameter.Value' --output text
+      register: db_url_result
 
-    - name: Create .env file for Docker container
+    - name: Create .env file for Flask app
       copy:
         dest: "{{ env_file_path }}"
         content: |
-          DB_PASSWORD={{ db_password_result.stdout }}
+          DATABASE_URL={{ db_url_result.stdout }}
+          DEBUG=True
       no_log: true
 
-    - name: Stop and remove previous Docker container if exists
+    - name: Stop and remove previous Docker container
       docker_container:
         name: "{{ docker_container_name }}"
         state: absent
         force_kill: true
 
-    - name: Build Docker image from source
+    - name: Build Docker image
       docker_image:
         name: "{{ docker_image_name }}"
         path: "{{ app_dir }}"
         build: true
 
-    - name: Run the Docker container
+    - name: Run Docker container
       docker_container:
         name: "{{ docker_container_name }}"
         image: "{{ docker_image_name }}"
