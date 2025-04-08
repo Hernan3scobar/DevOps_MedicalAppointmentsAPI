@@ -1,8 +1,7 @@
 pipeline {
-    agent any  // Usa el mismo contenedor Jenkins que ya tiene Terraform instalado
+    agent any  // Usa el mismo contenedor Jenkins que ya tiene Terraform y Ansible
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -10,7 +9,6 @@ pipeline {
         }
 
         stage('Terraform Init') {
-           
             steps {
                 dir('terraform') {
                     sh 'terraform init'
@@ -19,21 +17,9 @@ pipeline {
         }
 
         stage('Terraform Plan') {
-
             steps {
                 dir('terraform') {
-                    sh 'terraform plan -out=tfplan'
-                }
-            }
-        }
-
-        stage('Terraform Apply') {
-            when {
-                branch 'test-infra'
-            }
-            steps {
-                dir('terraform') {
-                    sh 'terraform apply -auto-approve tfplan'
+                    sh 'terraform plan -var-file=terraform.tfvars -out=tfplan'
                 }
             }
         }
