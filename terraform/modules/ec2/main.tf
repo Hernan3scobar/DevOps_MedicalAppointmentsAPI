@@ -28,14 +28,6 @@ resource "aws_security_group" "ec2_sg" {
   }
 
   egress {
-    description = "Allow MySQL to RDS" # Allow MySQL to RDS
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    security_groups = [var.rds_sg_id]
-  }
-
-  egress {
     description = "Allow DNS (UDP)" # Allow DNS (UDP)
     from_port   = 53
     to_port     = 53
