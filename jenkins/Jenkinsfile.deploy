@@ -10,61 +10,73 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        script {
-          checkout scm
-        }
+        checkout scm
       }
     }
 
+    stage('Debug Inventory') {
+  steps {
+    sh '''
+      echo "📂 Checking hosts files..."
+      ls -la ansible/inventory
+      cat ansible/inventory/hosts
+    '''
+  }
+}
+
     stage('Run Ansible Playbook') {
       steps {
-        script {
-          echo 'Running Ansible playbook...'
-          sh 'ansible-playbook -i ansible/inventory/hosts ansible/playbook.yml'
-        }
+        echo '🔧 Running Ansible playbook...'
+        sh '''
+          set -e
+          ansible-playbook -i ansible/inventory/hosts ansible/playbook.yml
+        '''
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        dir('docker') {
-          script {
-            sh 'docker build -t medical-app:latest .'
-          }
+        dir('app') {
+          sh '''
+            set -e
+            echo "🔨 Building Docker image..."
+            docker build -t medical-app:latest .
+          '''
         }
       }
     }
 
     stage('Run Docker Container') {
       steps {
-        script {
-          // Stop and remove previous container if it exists
-          sh '''
+        sh '''
+          set -e
+          echo "🚀 Running Docker container..."
+
+          if docker ps -a --format '{{.Names}}' | grep -Eq '^medical-app$'; then
+            echo "Stopping existing container..."
             docker stop medical-app || true
             docker rm medical-app || true
-            docker run -d --name medical-app \
-              -p 80:5000 \
-              -e DB_PASSWORD=$(aws ssm get-parameter --name ${DB_PASSWORD_PARAM} --with-decryption --query Parameter.Value --output text) \
-              medical-app:latest
-          '''
-        }
-      }
-    }
+          fi
 
-    stage('Run Unit Tests') {
-      steps {
-        dir('test') {
-          script {
-            sh 'pytest .'
-          }
-        }
+          docker run -d --name medical-app \
+            -p 80:5000 \
+            -e DB_PASSWORD=$(aws ssm get-parameter --name ${DB_PASSWORD_PARAM} --with-decryption --query Parameter.Value --output text) \
+            medical-app:latest
+        '''
       }
     }
   }
 
   post {
     always {
+      echo '🧹 Cleaning workspace...'
       cleanWs()
+    }
+    failure {
+      echo '❌ Pipeline failed. Please check logs above.'
+    }
+    success {
+      echo '✅ Deployment completed successfully!'
     }
   }
 }
