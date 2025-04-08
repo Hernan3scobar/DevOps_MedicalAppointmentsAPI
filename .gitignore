@@ -68,7 +68,7 @@ build/
 ansible_env.yml
 
 # Terraform files
-terraform.tfvars
+
 *.tfstate
 *.tfstate.backup
 .terraform/
