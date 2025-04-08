@@ -11,6 +11,3 @@ variable "ssh_public_key" {
   type        = string
   sensitive = true
 }
-variable "rds_sg_id" {
-  type = string
-} 
