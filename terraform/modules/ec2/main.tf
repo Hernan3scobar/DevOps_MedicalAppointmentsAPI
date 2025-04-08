@@ -20,12 +20,31 @@ resource "aws_security_group" "ec2_sg" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "Allow HTTPS for updates" # Allow HTTPS for updates
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow MySQL to RDS" # Allow MySQL to RDS
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups  = [aws_security_group.rds_sg.id]
+  }
+
+  egress {
+    description = "Allow DNS (UDP)" # Allow DNS (UDP)
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+
 
 resource "aws_key_pair" "ssh_key" {
   key_name   = "my_key_pair"
