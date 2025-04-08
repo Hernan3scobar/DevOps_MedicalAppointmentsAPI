@@ -4,7 +4,7 @@ pipeline {
   environment {
     APP_DIR = '/opt/app'
     VENV_DIR = '/opt/app/.venv'
-    DB_PASSWORD_PARAM = '/rds/mysql/password'  // Parámetro en SSM
+    DB_PASSWORD_PARAM = '/rds/mysql/password'
   }
 
   stages {
@@ -19,7 +19,7 @@ pipeline {
     stage('Run Ansible Playbook') {
       steps {
         script {
-          echo 'Executing Ansible deployment...'
+          echo 'Running Ansible playbook...'
           sh 'ansible-playbook -i ansible/inventory/hosts ansible/playbook.yml'
         }
       }
@@ -38,7 +38,7 @@ pipeline {
     stage('Run Docker Container') {
       steps {
         script {
-          // Detener y eliminar contenedor anterior si existe
+          // Stop and remove previous container if it exists
           sh '''
             docker stop medical-app || true
             docker rm medical-app || true
