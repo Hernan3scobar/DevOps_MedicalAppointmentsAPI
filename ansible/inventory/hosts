@@ -1,2 +1,2 @@
-[app_server]
+[web]
 localhost ansible_connection=local
