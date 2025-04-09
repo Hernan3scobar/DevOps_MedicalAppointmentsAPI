@@ -28,13 +28,17 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-credentials'
-                ]]) {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials'],
+                    [$class: 'StringBinding', credentialsId: 'terraform-cloud-token', variable: 'TERRAFORM_CLOUD_TOKEN']
+                ]) {
                     dir("${TF_DIR}") {
                         echo "[DEBUG] Initializing Terraform..."
-                        sh 'terraform init -input=false'
+                        sh '''
+                          echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > .terraformrc
+                          export TF_CLI_CONFIG_FILE=.terraformrc
+                          terraform init -input=false
+                        '''
                     }
                 }
             }
@@ -52,19 +56,21 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-credentials'
-                ]]) {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials'],
+                    [$class: 'StringBinding', credentialsId: 'terraform-cloud-token', variable: 'TERRAFORM_CLOUD_TOKEN']
+                ]) {
                     dir("${TF_DIR}") {
                         echo "[DEBUG] Running Terraform plan..."
-                        sh "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}"
+                        sh '''
+                          echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > .terraformrc
+                          export TF_CLI_CONFIG_FILE=.terraformrc
+                          terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}
+                        '''
                     }
                 }
             }
         }
-
-
     }
 
     post {
