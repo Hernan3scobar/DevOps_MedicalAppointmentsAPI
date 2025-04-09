@@ -68,6 +68,10 @@ pipeline {
 
                         export TF_CLI_CONFIG_FILE=~/.terraform.d/credentials.tfrc.json
                         export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
+                        export TF_IN_AUTOMATION=true
+                        export TF_CLOUD="false"
+                        aws sts get-caller-identity
+
 
                         terraform plan -out=${PLAN_OUT} -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}
                         '''
