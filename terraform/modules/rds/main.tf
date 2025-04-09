@@ -37,7 +37,7 @@ resource "aws_db_instance" "default" {
   engine_version         = "8.0"
   instance_class         = var.db_instance_class
   username               = "admin_user"
-  password               = var.db_password
+  password               = var.db-password
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot    = true
