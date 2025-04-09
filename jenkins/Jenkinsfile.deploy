@@ -15,7 +15,7 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 dir('ansible') {
-                    sh 'ansible-playbook playbook.yml'
+                    sh 'ansible-playbook -i inventory/hosts playbook.yml'
                 }
             }
         }
