@@ -62,65 +62,7 @@ resource "aws_iam_policy" "budget_policy" {
     ]
   })
 }
-# Allow Jenkins to manage EC2 instances
-resource "aws_iam_policy" "jenkins_permissions" {
-  name = "JenkinsInfrastructureAccess"
 
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-
-      # RDS
-      {
-        Effect = "Allow",
-        Action = [
-          "rds:CreateDBInstance",
-          "rds:DeleteDBInstance",
-          "rds:DescribeDBInstances",
-          "rds:ModifyDBInstance"
-        ],
-        Resource = "*"
-      },
-
-      # EC2
-      {
-        Effect = "Allow",
-        Action = [
-          "ec2:RunInstances",
-          "ec2:DescribeInstances",
-          "ec2:TerminateInstances",
-          "ec2:DescribeSecurityGroups",
-          "ec2:DescribeSubnets",
-          "ec2:DescribeVpcs",
-          "ec2:CreateTags"
-        ],
-        Resource = "*"
-      },
-
-      # VPC
-      {
-        Effect = "Allow",
-        Action = [
-          "ec2:CreateVpc",
-          "ec2:DeleteVpc",
-          "ec2:CreateSubnet",
-          "ec2:DeleteSubnet",
-          "ec2:DescribeRouteTables",
-          "ec2:CreateRouteTable",
-          "ec2:AssociateRouteTable"
-        ],
-        Resource = "*"
-      },
-
-      # IAM: 
-      {
-        Effect   = "Allow",
-        Action   = "iam:PassRole",
-        Resource = "*"
-      }
-    ]
-  })
-}
 # Attach the policies to the EC2 role
 resource "aws_iam_role_policy_attachment" "ssm_attach" {
   role       = aws_iam_role.ec2_ssm_role.name
@@ -131,11 +73,7 @@ resource "aws_iam_role_policy_attachment" "budget_access" {
   role       = aws_iam_role.ec2_ssm_role.name
   policy_arn = aws_iam_policy.budget_policy.arn
 }
-# Attach the policies to Jenkins role
-resource "aws_iam_role_policy_attachment" "jenkins_permissions_attach" {
-  role       = aws_iam_role.ec2_ssm_role.name
-  policy_arn = aws_iam_policy.jenkins_permissions.arn
-}
+
 # Create an instance profile for the EC2 role
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "EC2SSMProfile"
