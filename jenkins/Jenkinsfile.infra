@@ -5,6 +5,7 @@ pipeline {
         TF_DIR = 'terraform'
         PLAN_OUT = 'tfplan.out'
         PLAN_SUMMARY = 'tfplan-summary.txt'
+        SHOULD_APPLY = 'true'
     }
 
     options {
@@ -27,7 +28,7 @@ pipeline {
                 }
             }
             steps {
-                echo "[INFO] This is a pull request to 'main'. Proceeding with Terraform checks."
+                echo "[INFO] This is a pull request to 'main'. Proceeding with Terraform pipeline."
             }
         }
 
@@ -73,19 +74,18 @@ pipeline {
                 dir("${TF_DIR}") {
                     script {
                         echo "[DEBUG] Running Terraform plan..."
-                        def result = sh(script: "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}", returnStatus: true)
+                        def planResult = sh(script: "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}", returnStatus: true)
 
-                        if (result != 0) {
+                        if (planResult != 0) {
                             error "[ERROR] Terraform plan failed. Check syntax and variables."
                         }
 
                         def hasChanges = sh(script: "grep -q 'No changes.' ${PLAN_SUMMARY}", returnStatus: true) != 0
                         if (!hasChanges) {
                             echo "[INFO] Terraform plan shows no changes. Skipping apply."
-                            currentBuild.result = 'SUCCESS'
-                            skipRemainingStages = true
+                            env.SHOULD_APPLY = 'false'
                         } else {
-                            echo "[INFO] Terraform plan shows pending changes."
+                            echo "[INFO] Terraform plan shows pending infrastructure changes."
                         }
                     }
                 }
@@ -96,12 +96,12 @@ pipeline {
             when {
                 allOf {
                     changeset "**/*.tf", "**/*.tfvars"
-                    expression { return !skipRemainingStages }
+                    expression { return env.SHOULD_APPLY == 'true' }
                 }
             }
             steps {
                 dir("${TF_DIR}") {
-                    echo "[INFO] Applying Terraform plan..."
+                    echo "[INFO] Applying Terraform changes..."
                     sh "terraform apply -input=false ${PLAN_OUT}"
                 }
             }
@@ -114,7 +114,7 @@ pipeline {
                 }
             }
             steps {
-                echo "[INFO] No changes in infrastructure code. Skipping Terraform execution."
+                echo "[INFO] No Terraform files changed. Skipping all Terraform stages."
             }
         }
     }
@@ -124,10 +124,13 @@ pipeline {
             echo "[SUCCESS] Infrastructure pipeline completed successfully."
         }
         failure {
-            echo "[FAILURE] Infrastructure pipeline failed. See above logs for errors."
+            echo "[FAILURE] Infrastructure pipeline failed. See logs for details."
         }
         always {
-            echo "[FINAL] Pipeline finished: ${currentBuild.result}"
+            node {
+                echo "[FINAL] Pipeline finished with status: ${currentBuild.result}"
+                cleanWs()
+            }
         }
     }
 }
