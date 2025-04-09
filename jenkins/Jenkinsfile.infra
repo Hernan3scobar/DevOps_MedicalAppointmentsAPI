@@ -35,8 +35,8 @@ pipeline {
                     dir("${TF_DIR}") {
                         echo "[DEBUG] Initializing Terraform..."
                         sh '''
-                          echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > .terraformrc
-                          export TF_CLI_CONFIG_FILE=.terraformrc
+                          mkdir -p ~/.terraform.d
+                          echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > ~/.terraform.d/credentials.tfrc.json
                           terraform init -input=false
                         '''
                     }
@@ -61,12 +61,12 @@ pipeline {
                     [$class: 'StringBinding', credentialsId: 'terraform-cloud-token', variable: 'TERRAFORM_CLOUD_TOKEN']
                 ]) {
                     dir("${TF_DIR}") {
-                        echo "[DEBUG] Running Terraform plan..."
+                        echo "[DEBUG] Running Terraform plan locally (not remote)"
                         sh '''
-                          echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > .terraformrc
-                          export TF_CLI_CONFIG_FILE=.terraformrc
-                          terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars -lock=false -no-color
-
+                          mkdir -p ~/.terraform.d
+                          echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > ~/.terraform.d/credentials.tfrc.json
+                          export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
+                          terraform plan -out=${PLAN_OUT} -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}
                         '''
                     }
                 }
