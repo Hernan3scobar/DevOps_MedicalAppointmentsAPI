@@ -73,7 +73,7 @@ pipeline {
                         aws sts get-caller-identity
 
 
-                        terraform plan -out=${PLAN_OUT} -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}
+                        terraform plan -lock=false -no-color | tee ${PLAN_SUMMARY}
                         '''
                     }
                 }
