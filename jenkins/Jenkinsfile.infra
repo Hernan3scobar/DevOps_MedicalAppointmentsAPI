@@ -59,39 +59,66 @@ pipeline {
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
                 ]) {
                     dir("${TF_DIR}") {
-                        echo "[DEBUG] Forcing local terraform plan"
+                        echo "[DEBUG] Running Terraform plan..."
                         sh '''
                             export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
                             export TF_IN_AUTOMATION=true
                             export TF_CLOUD=false
-                            echo "[DEBUG] Identity check:"
-
                             terraform plan | tee ${PLAN_SUMMARY}
+                            
+                            if grep -q "No changes. Infrastructure is up-to-date." ${PLAN_SUMMARY}; then
+                                echo "NO_CHANGES=true" > ../.terraform_result
+                            else
+                                echo "NO_CHANGES=false" > ../.terraform_result
+                            fi
                         '''
                     }
                 }
             }
         }
 
-        stage('Terraform Apply') {
-            when {
-                expression {
-                    return currentBuild.currentResult == 'SUCCESS'
+    stage('Terraform Apply') {
+        when {
+            expression {
+                return currentBuild.currentResult == 'SUCCESS'
+            }
+        }
+        steps {
+            withCredentials([
+                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+            ]) {
+                dir("${TF_DIR}") {
+                    echo "[INFO] Applying Terraform changes..."
+                    // Ejecutamos apply y si falla, hacemos destroy
+                    sh '''
+                        export TF_IN_AUTOMATION=true
+                        export TF_CLOUD=false
+                        
+                        echo "[INFO] Running terraform apply..."
+                        if ! terraform apply -auto-approve; then
+                        echo "[ERROR] Terraform apply failed. Executing terraform destroy..."
+                        terraform destroy -auto-approve || echo "[ERROR] Terraform destroy also failed!"
+                        exit 1
+                        fi
+                    '''
                 }
             }
+        }
+    }
+
+        stage('Terraform Output') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
-                ]) {
-                    dir("${TF_DIR}") {
-                        echo "[INFO] Applying Terraform changes..."
-                        sh '''
-                            export TF_IN_AUTOMATION=true
-                            export TF_CLOUD=false
-                            terraform apply -auto-approve
-                        '''
-                    }
+                dir("${TF_DIR}") {
+                    echo "[DEBUG] Displaying Terraform output..."
+                    sh 'terraform output -json'
                 }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                echo "[INFO] Cleaning up workspace..."
+                cleanWs()
             }
         }
     }
