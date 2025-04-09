@@ -1,9 +1,13 @@
 resource "aws_db_subnet_group" "rds" {
-  name       = "rds-subnet-group"
-  subnet_ids = var.subnet_ids
-
+  name       = "rds-subnet-group-custom" # Nombre diferente al existente
+  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id] # Usa tus subnets directo
+  
   tags = {
-    Name = "RDS subnet group"
+    Name = "RDS subnet group (custom-vpc)"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -19,6 +23,9 @@ resource "aws_security_group" "rds_sg" {
     security_groups = [var.ec2_sg_id]
     description = "Access from EC2"
   }
+  tags = {
+  Name = "sg-rds-mysql"
+}
 }
 
 # Eliminated the egress rule for RDS because the database doesn't need outbound connections.
@@ -34,5 +41,8 @@ resource "aws_db_instance" "default" {
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot    = true
   deletion_protection    = true # Set to true to prevent accidental deletion
+  tags = {
+  Name = "mysql-instance"
+}
 }
 
