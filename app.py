@@ -7,7 +7,6 @@ from landing import bp_landing
 from dotenv import load_dotenv
 from mysql.connector.errors import DatabaseError as MySQLDatabaseError
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
-import sys
 
 def create_app():
     # Create a Flask instance and load configuration
