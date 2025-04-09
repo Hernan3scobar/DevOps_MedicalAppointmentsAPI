@@ -1,14 +1,26 @@
-variable "vpc_id" {}
+variable "vpc_id" {
+  description = "ID of the VPC"
+  type        = string
+}
+
 variable "subnet_ids" {
-  type = list(string)
+  description = "List of subnet IDs for RDS"
+  type        = list(string)
 }
 
 variable "ec2_sg_id" {
   description = "Security group ID of EC2 instance"
+  type        = string
 }
 
-variable "db_instance_class" { #added this variable to get the instance class of the rds instance.
+variable "db_instance_class" {
   description = "Instance class for the RDS instance"
   type        = string
   default     = "db.t3.micro"
+}
+
+variable "db_password" {
+  description = "The password for the MySQL database"
+  type        = string
+  sensitive   = true
 }
