@@ -1,3 +1,14 @@
+terraform {
+  cloud {
+    organization = "Group1SoftServeDemo2"
+
+    workspaces {
+      name = "terrademo2"
+    }
+  }
+}
+
+
 module "vpc" {
   source     = "./modules/vpc"
   cidr_block = var.vpc_cidr
