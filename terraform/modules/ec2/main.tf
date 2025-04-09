@@ -46,7 +46,7 @@ resource "aws_security_group_rule" "all_egress" {
 
 resource "aws_key_pair" "ssh_key" {
   key_name   = "my_key_pair"
-  public_key = file("~/.ssh/my_shh_key.pub")
+  public_key = data.aws_ssm_parameter.ssh_pub_key.value
 }
 
 resource "aws_instance" "web" {
