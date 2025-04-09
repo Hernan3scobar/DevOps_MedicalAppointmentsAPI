@@ -3,7 +3,7 @@ resource "aws_db_subnet_group" "rds" {
   subnet_ids = var.subnet_ids
   
   tags = {
-    Name = "RDS subnet group (custom-vpc)"
+    Name = "RDS subnet group custom-vpc"
   }
 
   lifecycle {
