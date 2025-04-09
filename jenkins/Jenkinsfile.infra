@@ -57,10 +57,8 @@ pipeline {
             echo "[FAILURE] Terraform plan pipeline failed. See logs for details."
         }
         always {
-            node {
-                echo "[FINAL] Pipeline finished with status: ${currentBuild.result}"
-                cleanWs()
-            }
+            echo "[FINAL] Pipeline finished with status: ${currentBuild.result}"
+            cleanWs()
         }
     }
 }
