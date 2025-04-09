@@ -35,7 +35,8 @@ pipeline {
                     dir("${TF_DIR}") {
                         echo "[DEBUG] Initializing Terraform..."
                         sh '''
-                          
+                          rm -rf .terraform
+
                           terraform init -input=false
                         '''
                     }
