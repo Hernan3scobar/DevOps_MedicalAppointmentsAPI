@@ -64,38 +64,7 @@ pipeline {
             }
         }
 
-        stage('Terraform Apply') {
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-credentials'
-                ]]) {
-                    dir("${TF_DIR}") {
-                        echo "[INFO] Applying Terraform plan..."
-                        sh "terraform apply -input=false ${PLAN_OUT}"
-                    }
-                }
-            }
-        }
 
-        stage('Terraform Destroy') {
-            when {
-                expression {
-                    return params.DESTROY_TERRAFORM == true
-                }
-            }
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-credentials'
-                ]]) {
-                    dir("${TF_DIR}") {
-                        echo "[WARNING] Destroying Terraform infrastructure..."
-                        sh 'terraform destroy -auto-approve -var-file=terraform.tfvars'
-                    }
-                }
-            }
-        }
     }
 
     post {
