@@ -5,7 +5,6 @@ pipeline {
         TF_DIR = 'terraform'
         PLAN_OUT = 'tfplan.out'
         PLAN_SUMMARY = 'tfplan-summary.txt'
-        SHOULD_APPLY = 'true'
     }
 
     options {
@@ -21,30 +20,7 @@ pipeline {
             }
         }
 
-        stage('Verify PR to main') {
-            when {
-                expression {
-                    return env.CHANGE_TARGET == 'main'
-                }
-            }
-            steps {
-                echo "[INFO] This is a pull request to 'main'. Proceeding with Terraform pipeline."
-            }
-        }
-
-        stage('Detect Infrastructure Changes') {
-            when {
-                changeset "**/*.tf", "**/*.tfvars"
-            }
-            steps {
-                echo "[INFO] Detected changes in Terraform files."
-            }
-        }
-
         stage('Terraform Init') {
-            when {
-                changeset "**/*.tf", "**/*.tfvars"
-            }
             steps {
                 dir("${TF_DIR}") {
                     echo "[DEBUG] Initializing Terraform..."
@@ -54,9 +30,6 @@ pipeline {
         }
 
         stage('Terraform Validate & Format') {
-            when {
-                changeset "**/*.tf", "**/*.tfvars"
-            }
             steps {
                 dir("${TF_DIR}") {
                     echo "[DEBUG] Formatting and validating Terraform code..."
@@ -67,64 +40,21 @@ pipeline {
         }
 
         stage('Terraform Plan') {
-            when {
-                changeset "**/*.tf", "**/*.tfvars"
-            }
             steps {
                 dir("${TF_DIR}") {
-                    script {
-                        echo "[DEBUG] Running Terraform plan..."
-                        def planResult = sh(script: "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}", returnStatus: true)
-
-                        if (planResult != 0) {
-                            error "[ERROR] Terraform plan failed. Check syntax and variables."
-                        }
-
-                        def hasChanges = sh(script: "grep -q 'No changes.' ${PLAN_SUMMARY}", returnStatus: true) != 0
-                        if (!hasChanges) {
-                            echo "[INFO] Terraform plan shows no changes. Skipping apply."
-                            env.SHOULD_APPLY = 'false'
-                        } else {
-                            echo "[INFO] Terraform plan shows pending infrastructure changes."
-                        }
-                    }
+                    echo "[DEBUG] Running Terraform plan..."
+                    sh "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}"
                 }
-            }
-        }
-
-        stage('Terraform Apply') {
-            when {
-                allOf {
-                    changeset "**/*.tf", "**/*.tfvars"
-                    expression { return env.SHOULD_APPLY == 'true' }
-                }
-            }
-            steps {
-                dir("${TF_DIR}") {
-                    echo "[INFO] Applying Terraform changes..."
-                    sh "terraform apply -input=false ${PLAN_OUT}"
-                }
-            }
-        }
-
-        stage('No Terraform Changes') {
-            when {
-                not {
-                    changeset "**/*.tf", "**/*.tfvars"
-                }
-            }
-            steps {
-                echo "[INFO] No Terraform files changed. Skipping all Terraform stages."
             }
         }
     }
 
     post {
         success {
-            echo "[SUCCESS] Infrastructure pipeline completed successfully."
+            echo "[SUCCESS] Terraform plan pipeline completed successfully."
         }
         failure {
-            echo "[FAILURE] Infrastructure pipeline failed. See logs for details."
+            echo "[FAILURE] Terraform plan pipeline failed. See logs for details."
         }
         always {
             node {
