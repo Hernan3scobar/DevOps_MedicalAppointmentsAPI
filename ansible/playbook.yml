@@ -3,7 +3,7 @@
   become: yes
 
   vars:
-    app_repo: "https://github.com/CodeSSRockMan/DevOps_MedicalAppointmentsAPI.git"
+    app_repo: "https://github.com/Hernan3scobar/DevOps_MedicalAppointmentsAPI"
     app_dir: "/opt/app"
     docker_image_name: "medical_flask_app"
     docker_container_name: "medical_container"
