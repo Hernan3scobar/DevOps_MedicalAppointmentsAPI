@@ -6,11 +6,13 @@ terraform {
     }
   }
 }
+//
+//provider "aws" {
+//  region                   = var.region
+//  shared_credentials_files = ["~/.aws/credentials"]
+//  profile                  = "9080-2738-5722"
+//}
 
-provider "aws" {
-  region                   = var.region
-  shared_credentials_files = ["~/.aws/credentials"]
-  profile                  = "9080-2738-5722"
-}
-
+// The provider is commented out because the aws-credentials is passing
+// through the CI/CD pipeline in jenkins credentials.
 
