@@ -57,28 +57,24 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials'],
-                    [$class: 'StringBinding', credentialsId: 'terraform-cloud-token', variable: 'TERRAFORM_CLOUD_TOKEN']
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
                 ]) {
                     dir("${TF_DIR}") {
-                        echo "[DEBUG] Running Terraform plan locally (not remote)"
+                        echo "[DEBUG] Forcing local terraform plan"
                         sh '''
-                        mkdir -p ~/.terraform.d
-                        echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > ~/.terraform.d/credentials.tfrc.json
+                            export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
+                            export TF_IN_AUTOMATION=true
+                            export TF_CLOUD=false
+                            echo "[DEBUG] Identity check:"
+                            aws sts get-caller-identity
 
-                        export TF_CLI_CONFIG_FILE=~/.terraform.d/credentials.tfrc.json
-                        export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
-                        export TF_IN_AUTOMATION=true
-                        export TF_CLOUD="false"
-                        aws sts get-caller-identity
-
-
-                        terraform plan -lock=false -no-color | tee ${PLAN_SUMMARY}
+                            terraform plan | tee ${PLAN_SUMMARY}
                         '''
                     }
                 }
             }
-}
+        }
+
 
     }
 
