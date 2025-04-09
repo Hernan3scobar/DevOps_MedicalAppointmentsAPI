@@ -67,9 +67,6 @@ pipeline {
                         echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > ~/.terraform.d/credentials.tfrc.json
 
                         export TF_CLI_CONFIG_FILE=~/.terraform.d/credentials.tfrc.json
-                        export TF_CLOUD_ORGANIZATION=
-                        export TF_WORKSPACE=
-                        export TF_TOKEN_app_terraform_io=
                         export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
 
                         terraform plan -out=${PLAN_OUT} -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}
