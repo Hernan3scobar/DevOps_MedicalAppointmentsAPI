@@ -1,10 +1,10 @@
-terraform { 
-  cloud { 
-    
-    organization = "SoftServe_Devops" 
+terraform {
+  cloud {
 
-    workspaces { 
-      name = "terraform-infra" 
-    } 
-  } 
+    organization = "SoftServe_Devops"
+
+    workspaces {
+      name = "terraform-infra"
+    }
+  }
 }

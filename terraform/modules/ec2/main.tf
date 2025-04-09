@@ -58,8 +58,8 @@ resource "aws_instance" "web" {
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   root_block_device {
-    volume_size = 30        
-    volume_type = "gp2"     
+    volume_size           = 30
+    volume_type           = "gp2"
     delete_on_termination = true
   }
 
