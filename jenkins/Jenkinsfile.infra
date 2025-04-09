@@ -11,9 +11,9 @@ pipeline {
         timestamps()
     }
 
-        stages {
-            
-            stage('Cleanup Before Checkout') {
+    stages {
+
+        stage('Cleanup Before Checkout') {
             steps {
                 deleteDir()
             }
@@ -28,9 +28,14 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir("${TF_DIR}") {
-                    echo "[DEBUG] Initializing Terraform..."
-                    sh 'terraform init -input=false'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-credentials'
+                ]]) {
+                    dir("${TF_DIR}") {
+                        echo "[DEBUG] Initializing Terraform..."
+                        sh 'terraform init -input=false'
+                    }
                 }
             }
         }
@@ -47,17 +52,28 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                dir("${TF_DIR}") {
-                    echo "[DEBUG] Running Terraform plan..."
-                    sh "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}"
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-credentials'
+                ]]) {
+                    dir("${TF_DIR}") {
+                        echo "[DEBUG] Running Terraform plan..."
+                        sh "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}"
+                    }
                 }
             }
         }
-         stage('Terraform Apply') {
+
+        stage('Terraform Apply') {
             steps {
-                dir("${TF_DIR}") {
-                    echo "[INFO] Applying Terraform plan..."
-                    sh "terraform apply -input=false ${PLAN_OUT}"
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-credentials'
+                ]]) {
+                    dir("${TF_DIR}") {
+                        echo "[INFO] Applying Terraform plan..."
+                        sh "terraform apply -input=false ${PLAN_OUT}"
+                    }
                 }
             }
         }
@@ -69,15 +85,17 @@ pipeline {
                 }
             }
             steps {
-                dir("${TF_DIR}") {
-                    echo "[WARNING] Destroying Terraform infrastructure..."
-                    sh 'terraform destroy -auto-approve -var-file=terraform.tfvars'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-credentials'
+                ]]) {
+                    dir("${TF_DIR}") {
+                        echo "[WARNING] Destroying Terraform infrastructure..."
+                        sh 'terraform destroy -auto-approve -var-file=terraform.tfvars'
+                    }
                 }
             }
         }
-
-
-
     }
 
     post {
