@@ -1,6 +1,5 @@
 terraform {
-  cloud {
-
+  backend "remote" {
     organization = "SoftServe_Devops"
 
     workspaces {
