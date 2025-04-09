@@ -24,3 +24,8 @@ variable "ssh_public_key" {
   default     = "" # Puede estar vacío por defecto
   sensitive = true
 }
+variable "db_password" {
+  description = "The password for the MySQL database"
+  type        = string
+  sensitive   = true
+}
