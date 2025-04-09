@@ -35,8 +35,7 @@ pipeline {
                     dir("${TF_DIR}") {
                         echo "[DEBUG] Initializing Terraform..."
                         sh '''
-                          mkdir -p ~/.terraform.d
-                          echo '{ "credentials": { "app.terraform.io": { "token": "'$TERRAFORM_CLOUD_TOKEN'" } } }' > ~/.terraform.d/credentials.tfrc.json
+                          
                           terraform init -input=false
                         '''
                     }
@@ -66,7 +65,7 @@ pipeline {
                             export TF_IN_AUTOMATION=true
                             export TF_CLOUD=false
                             echo "[DEBUG] Identity check:"
-                            aws sts get-caller-identity
+                            
 
                             terraform plan | tee ${PLAN_SUMMARY}
                         '''
