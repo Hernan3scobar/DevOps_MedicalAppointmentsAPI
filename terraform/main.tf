@@ -37,4 +37,5 @@ module "budget" {
   time_period_start   = var.time_period_start
   time_period_end     = var.time_period_end
   notification_email  = var.notification_email
+  db_password = var.db_password
 }
