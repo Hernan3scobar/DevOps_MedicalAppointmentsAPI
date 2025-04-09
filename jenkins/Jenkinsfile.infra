@@ -36,7 +36,6 @@ pipeline {
                         echo "[DEBUG] Initializing Terraform..."
                         sh '''
                           rm -rf .terraform
-
                           terraform init -input=false
                         '''
                     }
@@ -66,7 +65,6 @@ pipeline {
                             export TF_IN_AUTOMATION=true
                             export TF_CLOUD=false
                             echo "[DEBUG] Identity check:"
-                            
 
                             terraform plan | tee ${PLAN_SUMMARY}
                         '''
@@ -75,7 +73,27 @@ pipeline {
             }
         }
 
-
+        stage('Terraform Apply') {
+            when {
+                expression {
+                    return currentBuild.currentResult == 'SUCCESS'
+                }
+            }
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir("${TF_DIR}") {
+                        echo "[INFO] Applying Terraform changes..."
+                        sh '''
+                            export TF_IN_AUTOMATION=true
+                            export TF_CLOUD=false
+                            terraform apply -auto-approve
+                        '''
+                    }
+                }
+            }
+        }
     }
 
     post {
