@@ -1,10 +1,6 @@
-module "vpc" {
-  source = "../vpc" 
-}
-
 resource "aws_db_subnet_group" "rds" {
   name       = "rds-subnet-group-custom"
-  subnet_ids = module.vpc.private_subnet_ids
+  subnet_ids = var.subnet_ids
   
   tags = {
     Name = "RDS subnet group custom-vpc"
