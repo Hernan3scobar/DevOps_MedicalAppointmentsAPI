@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "rds" {
-  name       = "rds-subnet-group-custom" # Nombre diferente al existente
-  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id] # Usa tus subnets directo
+  name       = "rds-subnet-group-custom"
+  subnet_ids = var.subnet_ids
   
   tags = {
     Name = "RDS subnet group (custom-vpc)"
