@@ -12,12 +12,15 @@ pipeline {
             }
         }
 
-        stage('Run Ansible Playbook') {
-            steps {
-                sh 'ansible-playbook ansible/deploy.yml'
+    stage('Run Ansible Playbook') {
+        steps {
+            dir('ansible') {
+                sh 'ansible-playbook deploy.yml'
             }
         }
     }
+
+
 
     post {
         success {
