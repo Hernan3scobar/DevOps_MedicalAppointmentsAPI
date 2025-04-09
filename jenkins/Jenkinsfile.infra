@@ -11,7 +11,13 @@ pipeline {
         timestamps()
     }
 
-    stages {
+        stages {
+            
+            stage('Cleanup Before Checkout') {
+            steps {
+                deleteDir()
+            }
+        }
 
         stage('Checkout') {
             steps {
