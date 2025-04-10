@@ -14,7 +14,7 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key-ec2', keyFileVariable: 'KEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-ec2-key', keyFileVariable: 'KEY')]) {
                     dir('ansible') {
                         sh '''
                             echo "Checking AWS identity..."
