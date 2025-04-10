@@ -14,17 +14,14 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
-                ]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key-ec2', keyFileVariable: 'KEY')]) {
                     dir('ansible') {
                         sh '''
                             echo "Checking AWS identity..."
                             aws sts get-caller-identity
 
                             echo "Running Ansible playbook..."
-                            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory/hosts playbook.yml
-
+                            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory/hosts playbook.yml --private-key $KEY
                         '''
                     }
                 }
