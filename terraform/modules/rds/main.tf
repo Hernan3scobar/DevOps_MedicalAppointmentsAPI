@@ -1,3 +1,19 @@
+resource "null_resource" "rds_cleanup_wait" {
+  depends_on = [aws_db_instance.default]
+
+  triggers = {
+    db_instance_id = aws_db_instance.default.identifier
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      echo "Waiting for RDS instance ${aws_db_instance.default.identifier} to be fully deleted..."
+      aws rds wait db-instance-deleted \
+        --db-instance-identifier ${aws_db_instance.default.identifier} || true
+    EOT
+  }
+}
+
 resource "aws_db_subnet_group" "rds" {
   name       = "rds-subnet-group-${sha256(join(",", var.subnet_ids))}"
   subnet_ids = var.subnet_ids
