@@ -8,6 +8,7 @@ resource "aws_db_subnet_group" "rds" {
 
   lifecycle {
     create_before_destroy = true
+    prevent_destroy = false
   }
 }
 resource "aws_security_group" "rds_sg" {
@@ -41,12 +42,17 @@ resource "aws_db_instance" "default" {
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot    = true
-  deletion_protection    = true
+  deletion_protection    = false
 
   tags = {
     Name = "mysql-instance"
   }
 
   depends_on = [aws_db_subnet_group.rds]
+
+    lifecycle {
+    # Espera a que el subnet group esté listo antes de crear
+    replace_triggered_by = [aws_db_subnet_group.rds]
+  }
 }
 
