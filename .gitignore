@@ -72,3 +72,4 @@ ansible_env.yml
 *.tfstate
 *.tfstate.backup
 .terraform/
+.Identifier

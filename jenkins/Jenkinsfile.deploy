@@ -14,8 +14,18 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
-                dir('ansible') {
-                    sh 'ansible-playbook -i inventory/hosts playbook.yml'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir('ansible') {
+                        sh '''
+                            echo "Checking AWS identity..."
+                            aws sts get-caller-identity
+
+                            echo "Running Ansible playbook..."
+                            ansible-playbook -i inventory/hosts playbook.yml
+                        '''
+                    }
                 }
             }
         }
