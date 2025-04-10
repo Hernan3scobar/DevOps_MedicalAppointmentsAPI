@@ -46,5 +46,7 @@ resource "aws_db_instance" "default" {
   tags = {
     Name = "mysql-instance"
   }
+
+  depends_on = [aws_db_subnet_group.rds]
 }
 
