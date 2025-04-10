@@ -9,6 +9,7 @@ resource "aws_db_subnet_group" "rds" {
   lifecycle {
     create_before_destroy = true
     prevent_destroy = false
+    replace_triggered_by = [null_resource.rds_cleanup_wait] # Espera a que el wait termine
   }
 }
 resource "aws_security_group" "rds_sg" {
