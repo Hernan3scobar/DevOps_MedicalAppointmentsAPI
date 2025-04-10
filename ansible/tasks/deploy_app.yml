@@ -1,0 +1,47 @@
+- name: Log - Cloning the Flask app repository
+  debug:
+    msg: "Cloning the application repository into {{ app_dir }}..."
+
+- name: Clone the repository
+  git:
+    repo: "{{ app_repo }}"
+    dest: "{{ app_dir }}"
+    version: master
+    force: yes
+
+- name: Log - Stopping and removing old Docker container
+  debug:
+    msg: "Stopping and removing any previous Docker container..."
+
+- name: Stop and remove previous Docker container
+  docker_container:
+    name: "{{ docker_container_name }}"
+    state: absent
+    force_kill: true
+
+- name: Log - Building Docker image for the Flask app
+  debug:
+    msg: "Building Docker image from {{ app_dir }}..."
+
+- name: Build Docker image
+  docker_image:
+    name: "{{ docker_image_name }}"
+    source: build
+    build:
+      path: "{{ app_dir }}"
+      nocache: yes
+
+
+- name: Log - Starting Docker container with Flask app
+  debug:
+    msg: "Running Docker container on port 80 mapped to 5000 inside..."
+
+- name: Run Docker container
+  docker_container:
+    name: "{{ docker_container_name }}"
+    image: "{{ docker_image_name }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "80:5000"
+    env_file: "{{ env_file_path }}"

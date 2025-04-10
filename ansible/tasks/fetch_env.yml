@@ -1,0 +1,31 @@
+- name: Log - Fetching DATABASE_URL from SSM Parameter Store
+  debug:
+    msg: "Fetching DATABASE_URL from AWS SSM..."
+
+- name: Fetch DATABASE_URL from AWS SSM
+  command: >
+    aws ssm get-parameter --name "{{ db_url_param }}" --region us-east-1 --with-decryption --query 'Parameter.Value' --output text
+  register: db_url_result
+  failed_when: db_url_result.rc != 0
+  changed_when: false
+
+- name: Log - Result from AWS SSM fetch
+  debug:
+    var: db_url_result.stdout
+
+- name: Show error if DATABASE_URL not retrieved
+  debug:
+    msg: "Failed to retrieve DATABASE_URL"
+  when: db_url_result.rc != 0
+
+- name: Log - Creating .env file for Flask app
+  debug:
+    msg: "Writing .env file with retrieved DATABASE_URL..."
+
+- name: Create .env file for Flask app
+  copy:
+    dest: "{{ env_file_path }}"
+    content: |
+      DATABASE_URL={{ db_url_result.stdout }}
+      DEBUG=True
+  no_log: true

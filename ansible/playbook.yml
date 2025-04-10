@@ -11,63 +11,6 @@
     db_url_param: "/rds/mysql/db_url"
 
   tasks:
-    - name: Install required system packages
-      apt:
-        name: [ "docker.io", "python3-pip", "git", "awscli" ]
-        state: present
-        update_cache: yes
-
-    - name: Ensure Docker service is running
-      service:
-        name: docker
-        state: started
-        enabled: true
-
-    - name: Clone the repository
-      git:
-        repo: "{{ app_repo }}"
-        dest: "{{ app_dir }}"
-        version: master
-        force: yes
-
-    - name: Fetch DATABASE_URL from AWS SSM
-      command: >
-        aws ssm get-parameter --name "{{ db_url_param }}" --region us-east-1  --with-decryption --query 'Parameter.Value' --output text
-      register: db_url_result
-      failed_when: db_url_result.rc != 0
-      changed_when: false
-
-    - name: Show error if DATABASE_URL not retrieved
-      debug:
-        msg: "❌ Failed to retrieve DATABASE_URL"
-      when: db_url_result.rc != 0
-
-    - name: Create .env file for Flask app
-      copy:
-        dest: "{{ env_file_path }}"
-        content: |
-          DATABASE_URL={{ db_url_result.stdout }}
-          DEBUG=True
-      no_log: true
-
-    - name: Stop and remove previous Docker container
-      docker_container:
-        name: "{{ docker_container_name }}"
-        state: absent
-        force_kill: true
-
-    - name: Build Docker image
-      docker_image:
-        name: "{{ docker_image_name }}"
-        build:
-          path: "{{ app_dir }}"
-
-    - name: Run Docker container
-      docker_container:
-        name: "{{ docker_container_name }}"
-        image: "{{ docker_image_name }}"
-        state: started
-        restart_policy: always
-        ports:
-          - "80:5000"
-        env_file: "{{ env_file_path }}"
+    - import_tasks: tasks/setup_packages.yml
+    - import_tasks: tasks/fetch_env.yml
+    - import_tasks: tasks/deploy_app.yml
