@@ -1,3 +1,3 @@
 variable "cidr_block" {
-    description = "The CIDR block for the VPC."
+  description = "The CIDR block for the VPC."
 }

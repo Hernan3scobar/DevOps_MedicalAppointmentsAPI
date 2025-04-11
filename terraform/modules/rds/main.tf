@@ -2,7 +2,7 @@
 resource "aws_db_subnet_group" "rds" {
   name       = "rds-subnet-group-${sha256(join(",", var.subnet_ids))}"
   subnet_ids = var.subnet_ids
-  
+
   tags = {
     Name = "RDS subnet group"
   }
@@ -40,7 +40,7 @@ resource "aws_db_instance" "default" {
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot    = true
-  deletion_protection    = false  # Must be false for clean destruction
+  deletion_protection    = false # Must be false for clean destruction
 
   tags = {
     Name = "mysql-instance"
@@ -48,7 +48,7 @@ resource "aws_db_instance" "default" {
 
   lifecycle {
     ignore_changes = [
-      db_subnet_group_name  # Prevent recreation if subnet group changes
+      db_subnet_group_name # Prevent recreation if subnet group changes
     ]
   }
 }
