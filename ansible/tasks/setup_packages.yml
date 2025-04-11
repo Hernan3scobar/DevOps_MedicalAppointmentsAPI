@@ -25,3 +25,13 @@
   pip:
     name: docker
     executable: pip3
+
+- name: Log - Installing missing Python dependencies (six)
+  debug:
+    msg: "Installing Python module 'six'..."
+
+- name: Install Python module 'six'
+  pip:
+    name: six
+    executable: pip3
+
