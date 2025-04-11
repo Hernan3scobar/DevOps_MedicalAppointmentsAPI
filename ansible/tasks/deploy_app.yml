@@ -10,7 +10,7 @@
     content: |
       DATABASE_URL={{ DATABASE_URL }}
       DEBUG=True
-  no_log: true
+  no_log: false
 
 
 # Step 3: Clone the repository (same as before)
