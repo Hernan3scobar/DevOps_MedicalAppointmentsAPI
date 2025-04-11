@@ -3,20 +3,24 @@
   debug:
     msg: "DATABASE_URL: {{ DATABASE_URL }}"
 
-# Step 2: Clone the repository
+# Step 2: Preparar entorno para clonar el repositorio
 - name: Log - Cloning the Flask app repository
   debug:
     msg: "Cloning the application repository into {{ app_dir }}..."
 
-- name: Debug contents of app_dir
-  shell: ls -la {{ app_dir }}
-  register: app_dir_contents
-  ignore_errors: true
+- name: Check if {{ app_dir }}/.git exists
+  stat:
+    path: "{{ app_dir }}/.git"
+  register: git_dir
 
-- debug:
-    var: app_dir_contents.stdout_lines
+- name: Remove app directory if not a Git repo
+  file:
+    path: "{{ app_dir }}"
+    state: absent
+  when: not git_dir.stat.exists
+  become: true
 
-- name: Clone the repository
+- name: Clone or update the repository
   git:
     repo: "{{ app_repo }}"
     dest: "{{ app_dir }}"
@@ -25,7 +29,7 @@
     update: yes
   become: true
 
-# Step 3: Ensure app directory exists (en caso de error en git o permisos)
+# Step 3: Ensure app directory exists (por si acaso)
 - name: Ensure app directory exists
   file:
     path: "{{ app_dir }}"
