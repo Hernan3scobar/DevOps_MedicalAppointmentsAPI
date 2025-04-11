@@ -8,6 +8,14 @@
   debug:
     msg: "Cloning the application repository into {{ app_dir }}..."
 
+- name: Debug contents of app_dir
+  shell: ls -la {{ app_dir }}
+  register: app_dir_contents
+  ignore_errors: true
+
+- debug:
+    var: app_dir_contents.stdout_lines
+
 - name: Clone the repository
   git:
     repo: "{{ app_repo }}"
