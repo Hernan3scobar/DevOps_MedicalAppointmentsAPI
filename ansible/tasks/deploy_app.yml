@@ -32,7 +32,7 @@
   git:
     repo: "{{ app_repo }}"
     dest: "{{ app_dir }}"
-    version: master
+    version: rollback-a380589
     force: yes
 
 # Step 4: Stop and remove any previous Docker container
