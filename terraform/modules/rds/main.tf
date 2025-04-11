@@ -34,9 +34,9 @@ resource "aws_db_instance" "default" {
   allocated_storage      = 20
   engine                 = "mysql"
   engine_version         = "8.0"
-  instance_class         = var.db_instance_class
-  username               = "admin_user"
-  password               = var.db_password
+  instance_class         = "db.t3.micro"
+  username               = data.aws_ssm_parameter.db_user.value
+  password               = data.aws_ssm_parameter.db_password.value
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   skip_final_snapshot    = true

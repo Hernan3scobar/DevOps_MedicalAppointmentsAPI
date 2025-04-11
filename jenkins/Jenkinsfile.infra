@@ -1,0 +1,111 @@
+pipeline {
+    agent any
+
+    environment {
+        TF_DIR = 'terraform'
+        PLAN_OUT = 'tfplan.out'
+        PLAN_SUMMARY = 'tfplan-summary.txt'
+    }
+
+    options {
+        timestamps()
+    }
+
+    stages {
+
+        stage('Cleanup Before Checkout') {
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                echo "[INFO] Checking out repository..."
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials'],
+                    [$class: 'StringBinding', credentialsId: 'terraform-cloud-token', variable: 'TERRAFORM_CLOUD_TOKEN']
+                ]) {
+                    dir("${TF_DIR}") {
+                        echo "[DEBUG] Initializing Terraform..."
+                        sh '''
+                          rm -rf .terraform
+                          terraform init -input=false
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Validate & Format') {
+            steps {
+                dir("${TF_DIR}") {
+                    echo "[DEBUG] Formatting and validating Terraform code..."
+                    sh 'terraform fmt -check'
+                    sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir("${TF_DIR}") {
+                        echo "[DEBUG] Forcing local terraform plan"
+                        sh '''
+                            export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
+                            export TF_IN_AUTOMATION=true
+                            export TF_CLOUD=false
+                            echo "[DEBUG] Identity check:"
+
+                            terraform plan | tee ${PLAN_SUMMARY}
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            when {
+                expression {
+                    return currentBuild.currentResult == 'SUCCESS'
+                }
+            }
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir("${TF_DIR}") {
+                        echo "[INFO] Applying Terraform changes..."
+                        sh '''
+                            export TF_IN_AUTOMATION=true
+                            export TF_CLOUD=false
+                            terraform apply -auto-approve
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "[SUCCESS] Terraform plan pipeline completed successfully."
+        }
+        failure {
+            echo "[FAILURE] Terraform plan pipeline failed. See logs for details."
+        }
+        always {
+            echo "[FINAL] Pipeline finished with status: ${currentBuild.result}"
+            cleanWs()
+        }
+    }
+}

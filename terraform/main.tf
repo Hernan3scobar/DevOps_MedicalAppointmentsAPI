@@ -26,16 +26,15 @@ module "rds" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnet_ids
   ec2_sg_id  = module.ec2.security_group_id
-  db_password = var.db_password
 }
 
 module "budget" {
-  source              = "./modules/budget"
-  budget_name         = var.budget_name
-  limit_amount        = var.limit_amount
-  time_unit           = var.time_unit
-  services            = var.services
-  time_period_start   = var.time_period_start
-  time_period_end     = var.time_period_end
-  notification_email  = var.notification_email
+  source             = "./modules/budget"
+  budget_name        = var.budget_name
+  limit_amount       = var.limit_amount
+  time_unit          = var.time_unit
+  services           = var.services
+  time_period_start  = var.time_period_start
+  time_period_end    = var.time_period_end
+  notification_email = var.notification_email
 }

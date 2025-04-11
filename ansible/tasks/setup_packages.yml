@@ -1,0 +1,27 @@
+- name: Log - Installing required system packages
+  debug:
+    msg: "Installing Docker, pip, Git, and AWS CLI..."
+
+- name: Install required system packages
+  apt:
+    name: [ "docker.io", "python3-pip", "git", "awscli" ,"mysql-client"]
+    state: present
+    update_cache: yes
+
+- name: Log - Enabling and starting Docker service
+  debug:
+    msg: "Ensuring Docker service is started and enabled..."
+
+- name: Ensure Docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: true
+- name: Log - Installing Python Docker SDK
+  debug:
+    msg: "Installing python3-docker via pip..."
+
+- name: Install Docker SDK for Python
+  pip:
+    name: docker
+    executable: pip3

@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-ec2-key', keyFileVariable: 'KEY'),
+                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+            ]) {
+                    dir('ansible') {
+                        sh '''
+                            echo "Checking AWS identity..."
+                            aws sts get-caller-identity
+
+                            echo "Running Ansible playbook..."
+                            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory/hosts playbook.yml --private-key $KEY
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "[SUCCESS] Application deployed via Ansible"
+        }
+        failure {
+            echo "[FAILURE] Ansible deployment failed"
+        }
+    }
+}

@@ -1,0 +1,14 @@
+- name: Fetch DATABASE_URL from AWS SSM
+  command: >
+    aws ssm get-parameter --name "{{ db_url_param }}" --with-decryption --query 'Parameter.Value' --output text --region {{ aws_region }}
+  register: db_url_result
+  changed_when: false
+
+
+- name: Log - DATABASE_URL retrieved from SSM
+  debug:
+    msg: "DATABASE_URL: {{ db_url_result.stdout }}"
+
+- name: Set DATABASE_URL as a fact
+  set_fact:
+    DATABASE_URL: "{{ db_url_result.stdout }}"

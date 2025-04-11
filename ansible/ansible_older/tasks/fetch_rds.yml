@@ -1,0 +1,32 @@
+# Fetch RDS Host
+- name: Fetch RDS Host from SSM
+  command: >
+    aws ssm get-parameter --name "/rds/mysql/host" --with-decryption --query 'Parameter.Value' --output text --region {{ aws_region }}
+  register: rds_host_result
+  changed_when: false
+
+- name: Set fact - RDS Host
+  set_fact:
+    rds_host: "{{ rds_host_result.stdout }}"
+
+# Fetch RDS Username
+- name: Fetch RDS Username from SSM
+  command: >
+    aws ssm get-parameter --name "/rds/mysql/username" --with-decryption --query 'Parameter.Value' --output text --region {{ aws_region }}
+  register: rds_user_result
+  changed_when: false
+
+- name: Set fact - RDS Username
+  set_fact:
+    rds_user: "{{ rds_user_result.stdout }}"
+
+# Fetch RDS Password
+- name: Fetch RDS Password from SSM
+  command: >
+    aws ssm get-parameter --name "/rds/mysql/password" --with-decryption --query 'Parameter.Value' --output text --region {{ aws_region }}
+  register: rds_password_result
+  changed_when: false
+
+- name: Set fact - RDS Password
+  set_fact:
+    rds_password: "{{ rds_password_result.stdout }}"

@@ -1,0 +1,48 @@
+---
+- name: Install Jenkins via Docker on EC2
+  hosts: jenkins_server
+  become: yes
+  vars:
+    jenkins_container_name: jenkins
+    jenkins_image: jenkins/jenkins:lts
+    jenkins_port: 8080
+    jenkins_agent_port: 50000
+    jenkins_home_volume: jenkins_home
+
+  tasks:
+    - name: Ensure apt is updated
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - python3-pip
+        state: present
+
+    - name: Ensure Docker is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install docker-py (Ansible Docker SDK)
+      pip:
+        name: docker
+
+    - name: Run Jenkins container
+      community.docker.docker_container:
+        name: "{{ jenkins_container_name }}"
+        image: "{{ jenkins_image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - "{{ jenkins_port }}:8080"
+          - "{{ jenkins_agent_port }}:50000"
+        volumes:
+          - "{{ jenkins_home_volume }}:/var/jenkins_home"
+
+    - name: Show Jenkins URL
+      debug:
+        msg: "Jenkins is running at http://{{ ansible_host }}:{{ jenkins_port }}"

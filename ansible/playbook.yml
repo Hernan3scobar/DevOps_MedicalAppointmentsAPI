@@ -1,0 +1,18 @@
+- name: Deploy Flask App with Docker
+  hosts: web
+  become: yes
+
+  vars:
+    app_repo: "https://github.com/Hernan3scobar/DevOps_MedicalAppointmentsAPI"
+    app_dir: "/opt/app"
+    docker_image_name: "medical_flask_app"
+    docker_container_name: "medical_container"
+    env_file_path: "/opt/app/.env"
+    db_url_param: "/rds/mysql/db_url"
+    aws_region: "us-east-1"
+
+  tasks:
+    - import_tasks: tasks/setup_packages.yml
+    - import_tasks: tasks/fetch_ssm_params.yml
+    
+    - import_tasks: tasks/deploy_app.yml
