@@ -1,9 +1,9 @@
 terraform {
-  backend "remote" {
-    organization = "SoftServe_Devops"
+  backend "local" {
+#    organization = "SoftServe_Devops"
 
-    workspaces {
-      name = "terraform-infra"
-    }
+ #   workspaces {
+ #     name = "terraform-infra"
+ #   }
   }
 }
