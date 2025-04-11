@@ -2,7 +2,7 @@
   hosts: web
   become: yes
   gather_facts: false
-  
+
   vars:
     app_repo: "https://github.com/Hernan3scobar/DevOps_MedicalAppointmentsAPI"
     app_dir: "/opt/app"
@@ -13,6 +13,8 @@
     aws_region: "us-east-1"
 
   tasks:
+    - import_tasks: preinstall_six.yml
+
     - import_tasks: tasks/setup_packages.yml
     - import_tasks: tasks/fetch_ssm_params.yml
     

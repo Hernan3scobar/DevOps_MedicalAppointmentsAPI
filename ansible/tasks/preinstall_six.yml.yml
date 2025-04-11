@@ -1,0 +1,12 @@
+- name: Ensure six is installed before any Ansible module runs
+  hosts: web
+  gather_facts: false
+  become: yes
+  tasks:
+    - name: Force installation of six con pip3 (include in Ubuntu 24.04)
+      raw: |
+        if ! python3 -c "import six" 2>/dev/null; then
+          sudo pip3 install six --break-system-packages
+        else
+          echo "six installed"
+        fi
