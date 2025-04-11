@@ -11,9 +11,9 @@ pipeline {
         timestamps()
     }
 
-        stages {
-            
-            stage('Cleanup Before Checkout') {
+    stages {
+
+        stage('Cleanup Before Checkout') {
             steps {
                 deleteDir()
             }
@@ -28,9 +28,17 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir("${TF_DIR}") {
-                    echo "[DEBUG] Initializing Terraform..."
-                    sh 'terraform init -input=false'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials'],
+                    [$class: 'StringBinding', credentialsId: 'terraform-cloud-token', variable: 'TERRAFORM_CLOUD_TOKEN']
+                ]) {
+                    dir("${TF_DIR}") {
+                        echo "[DEBUG] Initializing Terraform..."
+                        sh '''
+                          rm -rf .terraform
+                          terraform init -input=false
+                        '''
+                    }
                 }
             }
         }
@@ -47,23 +55,64 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                dir("${TF_DIR}") {
-                    echo "[DEBUG] Running Terraform plan..."
-                    sh "terraform plan -out=${PLAN_OUT} -input=false -var-file=terraform.tfvars | tee ${PLAN_SUMMARY}"
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir("${TF_DIR}") {
+                        echo "[DEBUG] Planning Terraform changes..."
+                        sh '''
+                            export TF_CLI_ARGS_plan="-input=false -lock=false -no-color"
+                            export TF_IN_AUTOMATION=true
+                            export TF_CLOUD=false
+                            terraform plan -out=${PLAN_OUT} | tee ${PLAN_SUMMARY}
+                            terraform show -no-color ${PLAN_OUT}
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            when {
+                expression {
+                    return currentBuild.currentResult == 'SUCCESS'
+                }
+            }
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    dir("${TF_DIR}") {
+                        echo "[INFO] Applying Terraform changes..."
+                        sh '''
+                            export TF_IN_AUTOMATION=true
+                            export TF_CLOUD=false
+                            terraform apply -auto-approve ${PLAN_OUT}
+                        '''
+                    }
                 }
             }
         }
     }
 
     post {
-        success {
-            echo "[SUCCESS] Terraform plan pipeline completed successfully."
-        }
         failure {
-            echo "[FAILURE] Terraform plan pipeline failed. See logs for details."
+            echo "[FAILURE] Terraform pipeline failed. Attempting to destroy infrastructure..."
+
+            dir("${TF_DIR}") {
+                sh '''
+                if [ -f terraform.tfstate ]; then
+                    echo "[CLEANUP] Running terraform destroy..."
+                    terraform destroy -auto-approve || echo "[WARNING] Terraform destroy failed"
+                else
+                    echo "[SKIP] No terraform.tfstate found. Destroy skipped."
+                fi
+                '''
+            }
         }
-        always {
-            echo "[FINAL] Pipeline finished with status: ${currentBuild.result}"
+
+        cleanup {
+            echo "[CLEANUP] Cleaning workspace..."
             cleanWs()
         }
     }
