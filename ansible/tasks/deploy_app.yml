@@ -3,6 +3,16 @@
   debug:
     msg: "DATABASE_URL: {{ DATABASE_URL }}"
 
+# Step 1.5: Ensure app directory exists
+- name: Ensure app directory exists
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: true
+
 # Step 2: Create .env file for Flask app
 - name: Create .env file for Flask app
   copy:
