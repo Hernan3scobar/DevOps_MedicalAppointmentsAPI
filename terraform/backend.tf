@@ -1,5 +1,5 @@
 terraform {
-  backend "local" {
+  backend "remote" {
     organization = "SoftServe_Devops"
 
     workspaces {
