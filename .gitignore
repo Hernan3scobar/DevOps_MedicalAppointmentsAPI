@@ -73,3 +73,6 @@ ansible_env.yml
 *.tfstate.backup
 .terraform/
 .Identifier
+
+#
+*.deb

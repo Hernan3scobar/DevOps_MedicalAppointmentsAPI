@@ -4,3 +4,9 @@ Flask-Cors==3.0.10
 python-dotenv==1.0.0
 mysql-connector-python==8.2.0
 Werkzeug==2.2.3
+ansible==7.7.0
+ansible-core==2.14.7
+boto3
+botocore
+cryptography==38.0.4
+pyOpenSSL==22.0.0
