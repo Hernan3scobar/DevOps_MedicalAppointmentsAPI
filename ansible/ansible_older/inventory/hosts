@@ -1,3 +1,0 @@
-[web]
-44.204.129.135 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/my_shh_key
-
