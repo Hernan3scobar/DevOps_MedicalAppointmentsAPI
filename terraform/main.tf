@@ -26,3 +26,8 @@ module "budget" {
   time_period_end    = var.time_period_end
   notification_email = var.notification_email
 }
+module "s3" {
+  source       = "./modules/s3"
+  project_name = var.project_name
+  environment  = var.environment
+}
