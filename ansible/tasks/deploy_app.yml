@@ -20,6 +20,12 @@
   when: not git_dir.stat.exists
   become: true
 
+#Step 2.5: Mark app_dir as a safe Git directory
+- name: Mark {{ app_dir }} as a safe Git directory
+  shell: git config --global --add safe.directory {{ app_dir }}
+  become: true
+
+
 - name: Clone or update the repository
   git:
     repo: "{{ app_repo }}"
