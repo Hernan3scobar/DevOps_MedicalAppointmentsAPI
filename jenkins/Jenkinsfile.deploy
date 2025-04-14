@@ -23,7 +23,7 @@ pipeline {
                             aws sts get-caller-identity
 
                             echo "Running Ansible playbook..."
-                            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory/hosts playbook.yml --private-key $KEY
+                            ANSIBLE_HOST_KEY_CHECKING=False .venv/bin/ansible-playbook -i inventory/hosts playbook.yml --private-key $KEY
                         '''
                     }
                 }
