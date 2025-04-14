@@ -1,0 +1,36 @@
+# tasks/check_docker_access.yml
+
+- name: Get current remote user
+  shell: whoami
+  register: current_user
+  changed_when: false
+
+- name: Check if Docker socket exists
+  stat:
+    path: /var/run/docker.sock
+  register: docker_sock_stat
+
+- name: Warn if Docker socket is missing
+  debug:
+    msg: "Docker socket not found. Is Docker installed and running?"
+  when: not docker_sock_stat.stat.exists
+
+- name: Get user groups
+  shell: groups
+  register: user_groups
+  changed_when: false
+
+- name: Add user to docker group if not already a member
+  user:
+    name: "{{ current_user.stdout }}"
+    groups: docker
+    append: yes
+  when: "'docker' not in user_groups.stdout"
+
+- name: Ensure correct permissions on Docker socket
+  file:
+    path: /var/run/docker.sock
+    owner: root
+    group: docker
+    mode: '0660'
+  when: docker_sock_stat.stat.exists

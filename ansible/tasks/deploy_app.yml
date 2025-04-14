@@ -20,11 +20,10 @@
   when: not git_dir.stat.exists
   become: true
 
-#Step 2.5: Mark app_dir as a safe Git directory
+# Step 2.5: Mark app_dir as a safe Git directory
 - name: Mark {{ app_dir }} as a safe Git directory
   shell: git config --global --add safe.directory {{ app_dir }}
   become: true
-
 
 - name: Clone or update the repository
   git:
@@ -35,7 +34,7 @@
     update: yes
   become: true
 
-# Step 3: Ensure app directory exists (por si acaso)
+# Step 3: Ensure app directory exists
 - name: Ensure app directory exists
   file:
     path: "{{ app_dir }}"
@@ -57,16 +56,18 @@
     mode: '0644'
   become: true
 
-# Step 5: Stop and remove any previous Docker container
+# Step 5: Stop and remove any previous Docker container (manual fallback)
 - name: Log - Stopping and removing old Docker container
   debug:
     msg: "Stopping and removing any previous Docker container..."
 
 - name: Stop and remove previous Docker container
-  docker_container:
-    name: "{{ docker_container_name }}"
-    state: absent
-    force_kill: true
+  shell: |
+    docker stop {{ docker_container_name }} || true
+    docker rm {{ docker_container_name }} || true
+  args:
+    executable: /bin/bash
+  become: true
 
 # Step 6: Copy SQL schema to the EC2
 - name: Log - Copying SQL schema file to EC2
@@ -97,12 +98,11 @@
     msg: "Building Docker image from {{ app_dir }}..."
 
 - name: Build Docker image
-  docker_image:
-    name: "{{ docker_image_name }}"
-    source: build
-    build:
-      path: "{{ app_dir }}"
-      nocache: yes
+  shell: |
+    docker build -t {{ docker_image_name }} {{ app_dir }}
+  args:
+    executable: /bin/bash
+  become: true
 
 # Step 9: Start the Docker container
 - name: Log - Starting Docker container with Flask app
@@ -110,11 +110,10 @@
     msg: "Running Docker container on port 80 mapped to 5000 inside..."
 
 - name: Run Docker container
-  docker_container:
-    name: "{{ docker_container_name }}"
-    image: "{{ docker_image_name }}"
-    state: started
-    restart_policy: always
-    ports:
-      - "80:5000"
-    env_file: "{{ env_file_path }}"
+  shell: |
+    docker run -d --name {{ docker_container_name }} \
+      --restart always -p 80:5000 --env-file {{ env_file_path }} \
+      {{ docker_image_name }}
+  args:
+    executable: /bin/bash
+  become: true

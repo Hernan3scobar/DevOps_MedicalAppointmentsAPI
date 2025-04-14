@@ -14,5 +14,5 @@
   tasks:
     - import_tasks: tasks/setup_packages.yml
     - import_tasks: tasks/fetch_ssm_params.yml
-    
+    - import_tasks: tasks/check_docker_access.yml  
     - import_tasks: tasks/deploy_app.yml
